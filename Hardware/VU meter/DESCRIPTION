@@ -1,0 +1,3 @@
+<p><b>VU meter</b></p>
+
+Dual channel audio VU meter using Arduino UNO (Atmega328P) and NeoPixel RGB strips for each channel.
