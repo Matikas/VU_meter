@@ -38,7 +38,7 @@ LED VU meter for Arduino and Adafruit NeoPixel LEDs.
 #define N_STEPS   14
 #define MIC_PIN   A0  // Microphone is attached to this analog pin
 #define LED_PIN    6  // NeoPixel LED strand is connected to this pin
-#define SAMPLE_WINDOW   10  // Sample window for average level
+#define SAMPLE_WINDOW   30  // Sample window for average level
 #define INPUT_FLOOR 60 //Lower range of analogRead input
 #define INPUT_CEILING 500 //Max range of analogRead input, the lower the value the more sensitive (1023 = max)
  
@@ -110,7 +110,7 @@ void loop()
  
  
   //Scale the input logarithmically instead of linearly
-  c = fscale(INPUT_FLOOR, INPUT_CEILING, N_STEPS, 0, peakToPeak, 2);
+  c = fscale(INPUT_FLOOR, INPUT_CEILING, N_STEPS, 0, peakToPeak, 1);
  
   
  
