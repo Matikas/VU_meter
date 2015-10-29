@@ -1,33 +1,4 @@
 /*
-LED VU meter for Arduino and Adafruit NeoPixel LEDs.
- 
- Hardware requirements:
- - Most Arduino or Arduino-compatible boards (ATmega 328P or better).
- - Adafruit Electret Microphone Amplifier (ID: 1063)
- - Adafruit Flora RGB Smart Pixels (ID: 1260)
- OR
- - Adafruit NeoPixel Digital LED strip (ID: 1138)
- - Optional: battery for portable use (else power through USB or adapter)
- Software requirements:
- - Adafruit NeoPixel library
- 
- Connections:
- - 3.3V to mic amp +
- - GND to mic amp -
- - Analog pin to microphone output (configurable below)
- - Digital pin to LED data input (configurable below)
- See notes in setup() regarding 5V vs. 3.3V boards - there may be an
- extra connection to make and one line of code to enable or disable.
- 
- Written by Adafruit Industries.  Distributed under the BSD license.
- This paragraph must be included in any redistribution.
- 
- fscale function:
- Floating Point Autoscale Function V0.1
- Written by Paul Badger 2007
- Modified from code by Greg Shakar
-
-
  https://learn.adafruit.com/led-ampli-tie/the-code
  */
  
@@ -40,8 +11,7 @@ LED VU meter for Arduino and Adafruit NeoPixel LEDs.
 #define LED_PIN    6  // NeoPixel LED strand is connected to this pin
 #define SAMPLE_WINDOW   30  // Sample window for average level
 #define INPUT_FLOOR 60 //Lower range of analogRead input
-#define INPUT_CEILING 500 //Max range of analogRead input, the lower the value the more sensitive (1023 = max)
- 
+#define INPUT_CEILING 480 //Max range of analogRead input, the lower the value the more sensitive (1023 = max)
  
  
 byte peak = 14;      // Peak level of column; used for falling dots
@@ -51,7 +21,17 @@ byte dotCount = 0;  //Frame counter for peak dot
 byte dotHangCount = 0; //Frame counter for holding peak dot
  
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
- 
+
+
+
+enum mode{
+ classic = 0,
+ rainbow = 1,
+ potentiometer = 2
+};
+
+mode volatile currentMode;
+
 void setup() 
 {
   // This is only needed on 5V Arduinos (Uno, Leonardo, etc.).
@@ -63,7 +43,14 @@ void setup()
   // Serial.begin(9600);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
- 
+
+
+
+
+
+
+  //TODO: set mode (read from EEPROM, if not found - set default)
+  currentMode = potentiometer;
 }
  
 void loop() 
@@ -74,7 +61,6 @@ void loop()
   unsigned int signalMax = 0;
   unsigned int signalMin = 1023;
   unsigned int c, y;
- 
  
   // collect data for length of sample window (in mS)
   while (millis() - startMillis < SAMPLE_WINDOW)
@@ -94,20 +80,23 @@ void loop()
   }
   peakToPeak = signalMax - signalMin;  // max - min = peak-peak amplitude
  
-  // Serial.println(peakToPeak);
  
 
 
-
-
-
- 
-  //Fill the strip with rainbow gradient
-  for (int i=0;i<=N_STEPS;i++){
-    strip.setPixelColor(i,Wheel(map(i,0,N_STEPS,30,150)));
-    strip.setPixelColor(N_PIXELS-i,Wheel(map(i,0,N_STEPS,30,150)));
+  switch(currentMode){
+    case classic: 
+      drawClassic();
+      break;
+     case rainbow: 
+      drawRainbow();
+      break;
+     case potentiometer:
+      drawPotentiometer();
+      break;
+     default: { }
   }
  
+
  
   //Scale the input logarithmically instead of linearly
   c = fscale(INPUT_FLOOR, INPUT_CEILING, N_STEPS, 0, peakToPeak, 1);
@@ -122,29 +111,55 @@ void loop()
       strip.setPixelColor(N_PIXELS-1-i, 0, 0, 0);
     }
   }
- 
- 
-  // Set the peak dot to match the rainbow gradient
-  //y = strip.numPixels() - peak;
-  
-  //strip.setPixelColor(y-1,Wheel(map(y,0,strip.numPixels()-1,30,150)));
- 
+
   strip.show();
 }
- 
-//Used to draw a line between two points of a given color
-void drawLine(uint8_t from, uint8_t to, uint32_t c) {
-  uint8_t fromTemp;
-  if (from > to) {
-    fromTemp = from;
-    from = to;
-    to = fromTemp;
-  }
-  for(int i=from; i<=to; i++){
-    strip.setPixelColor(i, c);
+
+
+
+
+
+void drawClassic(){
+    for (int i=0;i<=N_STEPS;i++){
+      if(i<N_STEPS*0.5){
+         strip.setPixelColor(i, 0, 255, 0);
+         strip.setPixelColor(N_PIXELS-i, 0, 255, 0);
+      }
+      else if(i>=N_STEPS*0.5 && i<N_STEPS*0.7){
+         strip.setPixelColor(i, 255, 255, 0);
+         strip.setPixelColor(N_PIXELS-i, 255, 255, 0);
+      }
+      else{
+         strip.setPixelColor(i, 255, 0, 0);
+         strip.setPixelColor(N_PIXELS-i, 255, 0, 0);
+      }
   }
 }
- 
+
+void drawPotentiometer(){
+  //TODO: read value from potentiometer
+  unsigned int potValue = 400;
+
+  byte redVal = (potValue >> 2) & 0xE0;
+  byte grnVal = (potValue << 1) & 0x78;
+  byte bluVal = (potValue << 5) & 0xE0;
+  
+  for (int i=0;i<=N_STEPS;i++){
+    strip.setPixelColor(i, redVal, grnVal, bluVal);
+    strip.setPixelColor(N_PIXELS-i, redVal, grnVal, bluVal);
+  }
+}
+
+void drawRainbow(){
+  for (int i=0;i<=N_STEPS;i++){
+    strip.setPixelColor(i,Wheel(map(i, 0, N_STEPS, 30, 150)));
+    strip.setPixelColor(N_PIXELS-i,Wheel(map(i, 0, N_STEPS, 30, 150)));
+  }
+}
+
+
+
+
  
 float fscale( float originalMin, float originalMax, float newBegin, float
 newEnd, float inputValue, float curve){
@@ -210,7 +225,7 @@ newEnd, float inputValue, float curve){
  
   return rangedValue;
 }
- 
+
  
 // Input a value 0 to 255 to get a color value.
 // The colours are a transition r - g - b - back to r.
