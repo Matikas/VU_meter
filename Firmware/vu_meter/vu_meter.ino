@@ -4,6 +4,7 @@
  
 #include <Adafruit_NeoPixel.h>
 #include <math.h>
+#include <EEPROM.h>
  
 #define N_PIXELS  29  // Number of pixels in strand
 #define N_STEPS   14
@@ -12,49 +13,84 @@
 #define SAMPLE_WINDOW   30  // Sample window for average level
 #define INPUT_FLOOR 60 //Lower range of analogRead input
 #define INPUT_CEILING 480 //Max range of analogRead input, the lower the value the more sensitive (1023 = max)
- 
- 
+
+#define CHANGE_MODE_PIN 2
+
+#define EEPROM_MODE_ADDR 0
+
+
 byte peak = 14;      // Peak level of column; used for falling dots
 unsigned int sample;
  
-byte dotCount = 0;  //Frame counter for peak dot
-byte dotHangCount = 0; //Frame counter for holding peak dot
  
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+
+
+
+
+bool changeParams = false;
+//Parameters:
+uint8_t brightness, newBrightness;
+uint32_t color, newColor;
+uint8_t cycleSpeed, newCycleSpeed;
+
+
 
 
 
 enum mode{
  classic = 0,
  rainbow = 1,
- potentiometer = 2
+ presetColor = 2,
+ changeColor = 3
 };
 
 mode volatile currentMode;
 
 void setup() 
 {
-  // This is only needed on 5V Arduinos (Uno, Leonardo, etc.).
-  // Connect 3.3V to mic AND TO AREF ON ARDUINO and enable this
-  // line.  Audio samples are 'cleaner' at 3.3V.
-  // COMMENT OUT THIS LINE FOR 3.3V ARDUINOS (FLORA, ETC.):
-  //  analogReference(EXTERNAL);
- 
-  // Serial.begin(9600);
+  //Reading configuration from EEPROM
+  uint8_t modeInt = EEPROM.read(EEPROM_MODE_ADDR);
+  currentMode = (mode)modeInt;
+
+  //TODO get brightness and other parameters from EEPROM
+  brightness = 255;         //MAX VALUE = 255
+  color = 400;              //ADC VALUE (MAX 1023)
+  cycleSpeed = 10;          //MAX VALUE = 10
+  newBrightness = brightness;
+  newColor = color;
+  newCycleSpeed = cycleSpeed;
+
   strip.begin();
+  strip.setBrightness(brightness);  
   strip.show(); // Initialize all pixels to 'off'
 
 
 
-
-
-
-  //TODO: set mode (read from EEPROM, if not found - set default)
-  currentMode = potentiometer;
+  pinMode(CHANGE_MODE_PIN, OUTPUT);
+  attachInterrupt(digitalPinToInterrupt(CHANGE_MODE_PIN), changeMode, RISING);
 }
  
 void loop() 
 {
+  if(changeParams){
+    //TODO: read parameter from potentiometer by mode
+    //and wait until button is pressed again. Then save parameters
+    //to EEPROM
+
+    changeParams = false;
+  }
+  else{
+    showVU();
+  }
+}
+
+
+
+
+
+void showVU(){
   unsigned long startMillis= millis();  // Start of sample window
   float peakToPeak = 0;   // peak-to-peak level
  
@@ -80,9 +116,6 @@ void loop()
   }
   peakToPeak = signalMax - signalMin;  // max - min = peak-peak amplitude
  
- 
-
-
   switch(currentMode){
     case classic: 
       drawClassic();
@@ -90,20 +123,18 @@ void loop()
      case rainbow: 
       drawRainbow();
       break;
-     case potentiometer:
-      drawPotentiometer();
+     case presetColor:
+      drawPresetColor();
+      break;
+    case changeColor:
+      drawCycleColor();
       break;
      default: { }
   }
  
-
  
   //Scale the input logarithmically instead of linearly
   c = fscale(INPUT_FLOOR, INPUT_CEILING, N_STEPS, 0, peakToPeak, 1);
- 
-  
- 
- 
 
   if (c <= N_STEPS) { // Fill partial column with off pixels
     for(int i=N_STEPS-c; i<=N_STEPS; i++){   
@@ -114,9 +145,6 @@ void loop()
 
   strip.show();
 }
-
-
-
 
 
 void drawClassic(){
@@ -136,20 +164,6 @@ void drawClassic(){
   }
 }
 
-void drawPotentiometer(){
-  //TODO: read value from potentiometer
-  unsigned int potValue = 400;
-
-  byte redVal = (potValue >> 2) & 0xE0;
-  byte grnVal = (potValue << 1) & 0x78;
-  byte bluVal = (potValue << 5) & 0xE0;
-  
-  for (int i=0;i<=N_STEPS;i++){
-    strip.setPixelColor(i, redVal, grnVal, bluVal);
-    strip.setPixelColor(N_PIXELS-i, redVal, grnVal, bluVal);
-  }
-}
-
 void drawRainbow(){
   for (int i=0;i<=N_STEPS;i++){
     strip.setPixelColor(i,Wheel(map(i, 0, N_STEPS, 30, 150)));
@@ -157,9 +171,44 @@ void drawRainbow(){
   }
 }
 
+void drawPresetColor(){
+  byte redVal = (color >> 2) & 0xE0;
+  byte grnVal = (color << 1) & 0x78;
+  byte bluVal = (color << 5) & 0xE0;
+  
+  for (int i=0;i<=N_STEPS;i++){
+    strip.setPixelColor(i, redVal, grnVal, bluVal);
+    strip.setPixelColor(N_PIXELS-i, redVal, grnVal, bluVal);
+  }
+}
 
+void drawCycleColor(){
+  for (int i=0;i<=N_STEPS;i++){
+    uint32_t colorVal = Wheel((millis() >> cycleSpeed) & 255);
+    strip.setPixelColor(i, colorVal);
+    strip.setPixelColor(N_PIXELS-i, colorVal);
+  }
+}
 
+void changeMode(){
+  switch(currentMode){
+    case classic: 
+      currentMode = rainbow;
+      break;
+     case rainbow: 
+      currentMode = presetColor;
+      break;
+     case presetColor:
+      currentMode = changeColor;
+      break;
+    case changeColor:
+      currentMode = classic;
+      break;
+     default: { }
+  }
 
+  EEPROM.write(EEPROM_MODE_ADDR, (uint8_t)currentMode);
+}
  
 float fscale( float originalMin, float originalMax, float newBegin, float
 newEnd, float inputValue, float curve){
@@ -180,11 +229,6 @@ newEnd, float inputValue, float curve){
  
   curve = (curve * -.1) ; // - invert and scale - this seems more intuitive - postive numbers give more weight to high end on output 
   curve = pow(10, curve); // convert linear scale into lograthimic exponent for other pow function
- 
-  /*
-   Serial.println(curve * 100, DEC);   // multply by 100 to preserve resolution  
-   Serial.println(); 
-   */
  
   // Check for out of range inputValues
   if (inputValue < originalMin) {
