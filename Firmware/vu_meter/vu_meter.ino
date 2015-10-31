@@ -8,8 +8,10 @@
  
 #define N_PIXELS  29  // Number of pixels in strand
 #define N_STEPS   14
-#define MIC_PIN   A0  // Microphone is attached to this analog pin
-#define LED_PIN    6  // NeoPixel LED strand is connected to this pin
+#define LEFT_IN   A0  //Left audio channel
+#define RIGHT_IN   A1  //Right audio channel
+#define LEFT_LED_PIN    6  // NeoPixel LED strand is connected to this pin
+#define RIGHT_LED_PIN    5  // NeoPixel LED strand is connected to this pin
 #define SAMPLE_WINDOW   30  // Sample window for average level
 #define INPUT_FLOOR 60 //Lower range of analogRead input
 #define INPUT_CEILING 480 //Max range of analogRead input, the lower the value the more sensitive (1023 = max)
@@ -19,12 +21,12 @@
 #define EEPROM_MODE_ADDR 0
 
 
-byte peak = 14;      // Peak level of column; used for falling dots
-unsigned int sample;
- 
- 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+unsigned int sampleLeft, sampleRight;
+ 
+ 
+Adafruit_NeoPixel leftStrip = Adafruit_NeoPixel(N_PIXELS, LEFT_LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel rightStrip = Adafruit_NeoPixel(N_PIXELS, RIGHT_LED_PIN, NEO_GRB + NEO_KHZ800);
 
 
 
@@ -62,10 +64,12 @@ void setup()
   newColor = color;
   newCycleSpeed = cycleSpeed;
 
-  strip.begin();
-  strip.setBrightness(brightness);  
-  strip.show(); // Initialize all pixels to 'off'
-
+  leftStrip.begin();
+  leftStrip.setBrightness(brightness);  
+  leftStrip.show(); // Initialize all pixels to 'off'
+  rightStrip.begin();
+  rightStrip.setBrightness(brightness);  
+  rightStrip.show(); // Initialize all pixels to 'off'
 
 
   pinMode(CHANGE_MODE_PIN, OUTPUT);
@@ -92,29 +96,48 @@ void loop()
 
 void showVU(){
   unsigned long startMillis= millis();  // Start of sample window
-  float peakToPeak = 0;   // peak-to-peak level
+  float peakToPeakLeft = 0;   // peak-to-peak level
+  float peakToPeakRight = 0;   // peak-to-peak level
  
-  unsigned int signalMax = 0;
-  unsigned int signalMin = 1023;
-  unsigned int c, y;
- 
+  unsigned int signalMaxLeft = 0;
+  unsigned int signalMinLeft = 1023;
+  unsigned int cLeft, yLeft;
+
+  unsigned int signalMaxRight = 0;
+  unsigned int signalMinRight = 1023;
+  unsigned int cRight, yRight;
+  
   // collect data for length of sample window (in mS)
   while (millis() - startMillis < SAMPLE_WINDOW)
   {
-    sample = analogRead(MIC_PIN);
-    if (sample < 1024)  // toss out spurious readings
+    sampleLeft = analogRead(LEFT_IN);
+    if (sampleLeft < 1024)  // toss out spurious readings
     {
-      if (sample > signalMax)
+      if (sampleLeft > signalMaxLeft)
       {
-        signalMax = sample;  // save just the max levels
+        signalMaxLeft = sampleLeft;  // save just the max levels
       }
-      else if (sample < signalMin)
+      else if (sampleLeft < signalMinLeft)
       {
-        signalMin = sample;  // save just the min levels
+        signalMinLeft = sampleLeft;  // save just the min levels
+      }
+    }
+
+    sampleRight = analogRead(RIGHT_IN);
+    if (sampleRight < 1024)  // toss out spurious readings
+    {
+      if (sampleRight > signalMaxRight)
+      {
+        signalMaxRight = sampleRight;  // save just the max levels
+      }
+      else if (sampleRight < signalMinRight)
+      {
+        signalMinRight = sampleRight;  // save just the min levels
       }
     }
   }
-  peakToPeak = signalMax - signalMin;  // max - min = peak-peak amplitude
+  peakToPeakLeft = signalMaxLeft - signalMinLeft;  // max - min = peak-peak amplitude
+  peakToPeakRight = signalMaxRight - signalMinRight;  // max - min = peak-peak amplitude
  
   switch(currentMode){
     case classic: 
@@ -134,40 +157,57 @@ void showVU(){
  
  
   //Scale the input logarithmically instead of linearly
-  c = fscale(INPUT_FLOOR, INPUT_CEILING, N_STEPS, 0, peakToPeak, 1);
+  cLeft = fscale(INPUT_FLOOR, INPUT_CEILING, N_STEPS, 0, peakToPeakLeft, 1);
+  cRight = fscale(INPUT_FLOOR, INPUT_CEILING, N_STEPS, 0, peakToPeakRight, 1);
 
-  if (c <= N_STEPS) { // Fill partial column with off pixels
-    for(int i=N_STEPS-c; i<=N_STEPS; i++){   
-      strip.setPixelColor(i, 0, 0, 0);
-      strip.setPixelColor(N_PIXELS-1-i, 0, 0, 0);
+  if (cLeft <= N_STEPS) { // Fill partial column with off pixels
+    for(int i=N_STEPS-cLeft; i<=N_STEPS; i++){   
+      leftStrip.setPixelColor(i, 0, 0, 0);
+      leftStrip.setPixelColor(N_PIXELS-1-i, 0, 0, 0);
     }
   }
 
-  strip.show();
+  if (cRight <= N_STEPS) { // Fill partial column with off pixels
+    for(int i=N_STEPS-cRight; i<=N_STEPS; i++){   
+      rightStrip.setPixelColor(i, 0, 0, 0);
+      rightStrip.setPixelColor(N_PIXELS-1-i, 0, 0, 0);
+    }
+  }
+  
+  leftStrip.show();
+  rightStrip.show();
 }
 
 
 void drawClassic(){
     for (int i=0;i<=N_STEPS;i++){
       if(i<N_STEPS*0.5){
-         strip.setPixelColor(i, 0, 255, 0);
-         strip.setPixelColor(N_PIXELS-i, 0, 255, 0);
+         leftStrip.setPixelColor(i, 0, 255, 0);
+         leftStrip.setPixelColor(N_PIXELS-i, 0, 255, 0);
+         rightStrip.setPixelColor(i, 0, 255, 0);
+         rightStrip.setPixelColor(N_PIXELS-i, 0, 255, 0);
       }
       else if(i>=N_STEPS*0.5 && i<N_STEPS*0.7){
-         strip.setPixelColor(i, 255, 255, 0);
-         strip.setPixelColor(N_PIXELS-i, 255, 255, 0);
+         leftStrip.setPixelColor(i, 255, 255, 0);
+         leftStrip.setPixelColor(N_PIXELS-i, 255, 255, 0);
+         rightStrip.setPixelColor(i, 255, 255, 0);
+         rightStrip.setPixelColor(N_PIXELS-i, 255, 255, 0);
       }
       else{
-         strip.setPixelColor(i, 255, 0, 0);
-         strip.setPixelColor(N_PIXELS-i, 255, 0, 0);
+         leftStrip.setPixelColor(i, 255, 0, 0);
+         leftStrip.setPixelColor(N_PIXELS-i, 255, 0, 0);
+         rightStrip.setPixelColor(i, 255, 0, 0);
+         rightStrip.setPixelColor(N_PIXELS-i, 255, 0, 0);
       }
   }
 }
 
 void drawRainbow(){
   for (int i=0;i<=N_STEPS;i++){
-    strip.setPixelColor(i,Wheel(map(i, 0, N_STEPS, 30, 150)));
-    strip.setPixelColor(N_PIXELS-i,Wheel(map(i, 0, N_STEPS, 30, 150)));
+    leftStrip.setPixelColor(i,WheelLeft(map(i, 0, N_STEPS, 30, 150)));
+    leftStrip.setPixelColor(N_PIXELS-i,WheelLeft(map(i, 0, N_STEPS, 30, 150)));
+    rightStrip.setPixelColor(i,WheelRight(map(i, 0, N_STEPS, 30, 150)));
+    rightStrip.setPixelColor(N_PIXELS-i,WheelRight(map(i, 0, N_STEPS, 30, 150)));
   }
 }
 
@@ -177,16 +217,21 @@ void drawPresetColor(){
   byte bluVal = (color << 5) & 0xE0;
   
   for (int i=0;i<=N_STEPS;i++){
-    strip.setPixelColor(i, redVal, grnVal, bluVal);
-    strip.setPixelColor(N_PIXELS-i, redVal, grnVal, bluVal);
+    leftStrip.setPixelColor(i, redVal, grnVal, bluVal);
+    leftStrip.setPixelColor(N_PIXELS-i, redVal, grnVal, bluVal);
+    rightStrip.setPixelColor(i, redVal, grnVal, bluVal);
+    rightStrip.setPixelColor(N_PIXELS-i, redVal, grnVal, bluVal);
   }
 }
 
 void drawCycleColor(){
   for (int i=0;i<=N_STEPS;i++){
-    uint32_t colorVal = Wheel((millis() >> cycleSpeed) & 255);
-    strip.setPixelColor(i, colorVal);
-    strip.setPixelColor(N_PIXELS-i, colorVal);
+    uint32_t colorValLeft = WheelLeft((millis() >> cycleSpeed) & 255);
+    uint32_t colorValRight = WheelLeft((millis() >> cycleSpeed) & 255);
+    leftStrip.setPixelColor(i, colorValLeft);
+    leftStrip.setPixelColor(N_PIXELS-i, colorValLeft);
+    rightStrip.setPixelColor(i, colorValRight);
+    rightStrip.setPixelColor(N_PIXELS-i, colorValRight);
   }
 }
 
@@ -273,16 +318,32 @@ newEnd, float inputValue, float curve){
  
 // Input a value 0 to 255 to get a color value.
 // The colours are a transition r - g - b - back to r.
-uint32_t Wheel(byte WheelPos) {
+uint32_t WheelLeft(byte WheelPos) {
   if(WheelPos < 85) {
-    return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+    return leftStrip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   } 
   else if(WheelPos < 170) {
     WheelPos -= 85;
-    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+    return leftStrip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
   } 
   else {
     WheelPos -= 170;
-    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+    return leftStrip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t WheelRight(byte WheelPos) {
+  if(WheelPos < 85) {
+    return rightStrip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+  } 
+  else if(WheelPos < 170) {
+    WheelPos -= 85;
+    return rightStrip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  } 
+  else {
+    WheelPos -= 170;
+    return rightStrip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
 }
