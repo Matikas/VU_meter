@@ -1,7 +1,3 @@
-/*
- https://learn.adafruit.com/led-ampli-tie/the-code
- */
- 
 #include <Adafruit_NeoPixel.h>
 #include <math.h>
 #include <EEPROM.h>
@@ -17,35 +13,33 @@
 #define INPUT_CEILING 480 //Max range of analogRead input, the lower the value the more sensitive (1023 = max)
 
 #define CHANGE_MODE_PIN 2
+#define POT_ENABLE_PIN 3
+#define POT_PIN A5
 
 #define EEPROM_MODE_ADDR 0
-
-
+#define EEPROM_BRIGHTNESS_ADDR 1
+#define EEPROM_COLOR_ADDR 2
+#define EEPROM_CYCLE_SPEED_ADDR 5
 
 unsigned int sampleLeft, sampleRight;
- 
  
 Adafruit_NeoPixel leftStrip = Adafruit_NeoPixel(N_PIXELS, LEFT_LED_PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel rightStrip = Adafruit_NeoPixel(N_PIXELS, RIGHT_LED_PIN, NEO_GRB + NEO_KHZ800);
 
 
-
-
-bool changeParams = false;
+bool volatile changeParams = false;
 //Parameters:
 uint8_t brightness, newBrightness;
-uint32_t color, newColor;
+uint16_t color, newColor;
 uint8_t cycleSpeed, newCycleSpeed;
-
-
-
 
 
 enum mode{
  classic = 0,
  rainbow = 1,
  presetColor = 2,
- changeColor = 3
+ changeColor = 3,
+ total = 4
 };
 
 mode volatile currentMode;
@@ -53,13 +47,33 @@ mode volatile currentMode;
 void setup() 
 {
   //Reading configuration from EEPROM
-  uint8_t modeInt = EEPROM.read(EEPROM_MODE_ADDR);
-  currentMode = (mode)modeInt;
+  uint8_t modeEeprom = EEPROM.read(EEPROM_MODE_ADDR);
+  if(modeEeprom >= (uint8_t)total)
+    currentMode = classic;
+  else
+    currentMode = (mode)modeEeprom;
 
-  //TODO get brightness and other parameters from EEPROM
-  brightness = 255;         //MAX VALUE = 255
-  color = 400;              //ADC VALUE (MAX 1023)
-  cycleSpeed = 10;          //MAX VALUE = 10
+
+  uint8_t brightnessEeprom = EEPROM.read(EEPROM_BRIGHTNESS_ADDR);
+  if(brightnessEeprom == 0)
+    brightness = 255;
+  else
+    brightness = brightnessEeprom;
+  
+
+  uint16_t colorEeprom = EEPROMReadInt(EEPROM_COLOR_ADDR);
+  if(colorEeprom > 1023 || colorEeprom == 0)
+    color = 500;
+  else
+    color = colorEeprom;
+
+  uint8_t cycleSpeedEeprom = EEPROM.read(EEPROM_CYCLE_SPEED_ADDR);
+  if(cycleSpeedEeprom > 11 || cycleSpeedEeprom == 0)
+    cycleSpeed = 3;
+  else
+    cycleSpeed = cycleSpeedEeprom;
+
+
   newBrightness = brightness;
   newColor = color;
   newCycleSpeed = cycleSpeed;
@@ -74,16 +88,15 @@ void setup()
 
   pinMode(CHANGE_MODE_PIN, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(CHANGE_MODE_PIN), changeMode, RISING);
+
+  pinMode(POT_ENABLE_PIN, OUTPUT);
+  attachInterrupt(digitalPinToInterrupt(POT_ENABLE_PIN), toggleChangeParams, RISING);
 }
  
 void loop() 
 {
   if(changeParams){
-    //TODO: read parameter from potentiometer by mode
-    //and wait until button is pressed again. Then save parameters
-    //to EEPROM
-
-    changeParams = false;
+    changeParameters();    
   }
   else{
     showVU();
@@ -91,7 +104,61 @@ void loop()
 }
 
 
+void changeParameters(){
+  detachInterrupt(digitalPinToInterrupt(CHANGE_MODE_PIN));
 
+  unsigned int adcVal;
+  while(changeParams){
+    adcVal = analogRead(POT_PIN);
+
+    
+    if(currentMode == classic || currentMode == rainbow){
+      newBrightness = map(adcVal, 0, 1023, 0, 255);
+
+      leftStrip.setBrightness(newBrightness);  
+      rightStrip.setBrightness(newBrightness); 
+      if(currentMode == classic)
+        drawClassic();
+      else
+        drawRainbow();
+      leftStrip.show();
+      rightStrip.show();
+    }
+    else if(currentMode == presetColor){
+      if(abs(adcVal-newColor) > 40){
+        newColor = adcVal;
+        drawPresetColor(newColor);
+        leftStrip.show();
+        rightStrip.show();
+      }
+    }
+    else if(currentMode == changeColor){
+      newCycleSpeed = map(adcVal, 0, 1023, 0, 11);
+      
+      drawCycleColor(newCycleSpeed);
+      leftStrip.show();
+      rightStrip.show();
+    }
+  }
+  
+  if(brightness != newBrightness){
+    EEPROM.write(EEPROM_BRIGHTNESS_ADDR, newBrightness);
+    brightness = newBrightness;
+  }
+
+  if(color != newColor){
+    EEPROMWriteInt(EEPROM_COLOR_ADDR, newColor);
+    color = newColor;
+  }
+
+  if(cycleSpeed != newCycleSpeed){
+    EEPROM.write(EEPROM_CYCLE_SPEED_ADDR, newCycleSpeed);
+    cycleSpeed = newCycleSpeed;
+  }
+
+  
+  attachInterrupt(digitalPinToInterrupt(CHANGE_MODE_PIN), changeMode, RISING);
+}
 
 
 void showVU(){
@@ -147,10 +214,10 @@ void showVU(){
       drawRainbow();
       break;
      case presetColor:
-      drawPresetColor();
+      drawPresetColor(color);
       break;
     case changeColor:
-      drawCycleColor();
+      drawCycleColor(cycleSpeed);
       break;
      default: { }
   }
@@ -211,10 +278,10 @@ void drawRainbow(){
   }
 }
 
-void drawPresetColor(){
-  byte redVal = (color >> 2) & 0xE0;
-  byte grnVal = (color << 1) & 0x78;
-  byte bluVal = (color << 5) & 0xE0;
+void drawPresetColor(uint16_t _color){
+  byte redVal = (_color >> 2) & 0xE0;
+  byte grnVal = (_color << 1) & 0x78;
+  byte bluVal = (_color << 5) & 0xE0;
   
   for (int i=0;i<=N_STEPS;i++){
     leftStrip.setPixelColor(i, redVal, grnVal, bluVal);
@@ -224,10 +291,10 @@ void drawPresetColor(){
   }
 }
 
-void drawCycleColor(){
+void drawCycleColor(uint8_t _speed){
   for (int i=0;i<=N_STEPS;i++){
-    uint32_t colorValLeft = WheelLeft((millis() >> cycleSpeed) & 255);
-    uint32_t colorValRight = WheelLeft((millis() >> cycleSpeed) & 255);
+    uint32_t colorValLeft = WheelLeft((millis() >> _speed) & 255);
+    uint32_t colorValRight = WheelLeft((millis() >> _speed) & 255);
     leftStrip.setPixelColor(i, colorValLeft);
     leftStrip.setPixelColor(N_PIXELS-i, colorValLeft);
     rightStrip.setPixelColor(i, colorValRight);
@@ -253,6 +320,10 @@ void changeMode(){
   }
 
   EEPROM.write(EEPROM_MODE_ADDR, (uint8_t)currentMode);
+}
+
+void toggleChangeParams(){
+  changeParams = !changeParams;
 }
  
 float fscale( float originalMin, float originalMax, float newBegin, float
@@ -347,3 +418,23 @@ uint32_t WheelRight(byte WheelPos) {
     return rightStrip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
 }
+
+//This function will write a 2 byte integer to the eeprom at the specified address and address + 1
+void EEPROMWriteInt(int p_address, int p_value)
+{
+  byte lowByte = ((p_value >> 0) & 0xFF);
+  byte highByte = ((p_value >> 8) & 0xFF);
+  
+  EEPROM.write(p_address, lowByte);
+  EEPROM.write(p_address + 1, highByte);
+}
+
+//This function will read a 2 byte integer from the eeprom at the specified address and address + 1
+unsigned int EEPROMReadInt(int p_address)
+{
+  byte lowByte = EEPROM.read(p_address);
+  byte highByte = EEPROM.read(p_address + 1);
+  
+  return ((lowByte << 0) & 0xFF) + ((highByte << 8) & 0xFF00);
+}
+
