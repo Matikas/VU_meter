@@ -135,7 +135,18 @@ void changeParameters(){
     else if(currentMode == changeColor){
       newCycleSpeed = map(adcVal, 0, 1023, 0, 11);
       
-      drawCycleColor(newCycleSpeed);
+      uint8_t ledsPerStep = N_PIXELS % 11 > 0 ? (N_PIXELS / 11) + 1 : N_PIXELS / 11;
+
+      for(uint8_t i = 0; i<=N_PIXELS; i++){
+        leftStrip.setPixelColor(i, 0, 0, 0);
+        rightStrip.setPixelColor(i, 0, 0, 0);
+      }
+      
+      for(uint8_t i = 0; i<=newCycleSpeed*ledsPerStep; i++){
+        leftStrip.setPixelColor(i, 255, 255, 255);
+        rightStrip.setPixelColor(i, 255, 255, 255);
+      }
+      
       leftStrip.show();
       rightStrip.show();
     }
