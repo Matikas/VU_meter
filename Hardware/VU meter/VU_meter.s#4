@@ -8910,7 +8910,6 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="C5" library="resistor" deviceset="CPOL-EU" device="E2-5" value="10u"/>
 <part name="R6" library="eagle-ltspice" deviceset="R" device="0207/10" value="1k"/>
-<part name="C6" library="resistor" deviceset="CPOL-EU" device="E2-5" value="47p"/>
 <part name="R7" library="eagle-ltspice" deviceset="R" device="0207/10" value="10k"/>
 <part name="C7" library="resistor" deviceset="CPOL-EU" device="E2-5" value="10u"/>
 <part name="R3" library="eagle-ltspice" deviceset="R" device="0207/10" value="100k"/>
@@ -8919,8 +8918,9 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="C8" library="resistor" deviceset="CPOL-EU" device="E2-5" value="10u"/>
 <part name="R8" library="eagle-ltspice" deviceset="R" device="0207/10" value="1k"/>
-<part name="C9" library="resistor" deviceset="CPOL-EU" device="E2-5" value="47p"/>
 <part name="R9" library="eagle-ltspice" deviceset="R" device="0207/10" value="10k"/>
+<part name="C4" library="capacitor-wima" deviceset="C" device="5/5" value="47p"/>
+<part name="C10" library="capacitor-wima" deviceset="C" device="5/5" value="47p"/>
 </parts>
 <sheets>
 <sheet>
@@ -8948,7 +8948,6 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <instance part="GND6" gate="1" x="25.4" y="99.06"/>
 <instance part="C5" gate="G$1" x="38.1" y="116.84" rot="R180"/>
 <instance part="R6" gate="G$1" x="38.1" y="109.22" rot="R90"/>
-<instance part="C6" gate="G$1" x="63.5" y="149.86" rot="R270"/>
 <instance part="R7" gate="G$1" x="60.96" y="139.7" rot="R180"/>
 <instance part="C7" gate="G$1" x="15.24" y="182.88" rot="R90"/>
 <instance part="R3" gate="G$1" x="25.4" y="175.26" rot="R90"/>
@@ -8957,8 +8956,9 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <instance part="GND5" gate="1" x="25.4" y="154.94"/>
 <instance part="C8" gate="G$1" x="38.1" y="172.72" rot="R180"/>
 <instance part="R8" gate="G$1" x="38.1" y="165.1" rot="R90"/>
-<instance part="C9" gate="G$1" x="63.5" y="205.74" rot="R270"/>
 <instance part="R9" gate="G$1" x="60.96" y="195.58" rot="R180"/>
+<instance part="C4" gate="G$1" x="60.96" y="205.74" rot="R90"/>
+<instance part="C10" gate="G$1" x="60.96" y="149.86" rot="R90"/>
 </instances>
 <busses>
 </busses>
@@ -9105,7 +9105,6 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="C6" gate="G$1" pin="-"/>
 <pinref part="R7" gate="G$1" pin="2"/>
 <wire x1="58.42" y1="149.86" x2="55.88" y2="149.86" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="149.86" x2="55.88" y2="144.78" width="0.1524" layer="91"/>
@@ -9118,11 +9117,11 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <junction x="38.1" y="132.08"/>
 <wire x1="55.88" y1="144.78" x2="38.1" y2="144.78" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="144.78" x2="38.1" y2="132.08" width="0.1524" layer="91"/>
+<pinref part="C10" gate="G$1" pin="1"/>
 </segment>
 </net>
 <net name="N$9" class="0">
 <segment>
-<pinref part="C6" gate="G$1" pin="+"/>
 <wire x1="66.04" y1="149.86" x2="68.58" y2="149.86" width="0.1524" layer="91"/>
 <wire x1="68.58" y1="149.86" x2="68.58" y2="144.78" width="0.1524" layer="91"/>
 <pinref part="R7" gate="G$1" pin="1"/>
@@ -9137,6 +9136,7 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <pinref part="IC1" gate="1" pin="ANALOG_0"/>
 <wire x1="43.18" y1="83.82" x2="73.66" y2="83.82" width="0.1524" layer="91"/>
 <wire x1="73.66" y1="83.82" x2="73.66" y2="129.54" width="0.1524" layer="91"/>
+<pinref part="C10" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="LEFT" class="0">
@@ -9167,7 +9167,6 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 </net>
 <net name="N$11" class="0">
 <segment>
-<pinref part="C9" gate="G$1" pin="-"/>
 <pinref part="R9" gate="G$1" pin="2"/>
 <wire x1="58.42" y1="205.74" x2="55.88" y2="205.74" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="205.74" x2="55.88" y2="200.66" width="0.1524" layer="91"/>
@@ -9180,11 +9179,11 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <wire x1="55.88" y1="200.66" x2="38.1" y2="200.66" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="200.66" x2="38.1" y2="187.96" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="A" pin="-IN"/>
+<pinref part="C4" gate="G$1" pin="1"/>
 </segment>
 </net>
 <net name="N$12" class="0">
 <segment>
-<pinref part="C9" gate="G$1" pin="+"/>
 <wire x1="66.04" y1="205.74" x2="68.58" y2="205.74" width="0.1524" layer="91"/>
 <wire x1="68.58" y1="205.74" x2="68.58" y2="200.66" width="0.1524" layer="91"/>
 <pinref part="R9" gate="G$1" pin="1"/>
@@ -9200,6 +9199,7 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <wire x1="43.18" y1="81.28" x2="81.28" y2="81.28" width="0.1524" layer="91"/>
 <wire x1="81.28" y1="81.28" x2="81.28" y2="185.42" width="0.1524" layer="91"/>
 <wire x1="81.28" y1="185.42" x2="73.66" y2="185.42" width="0.1524" layer="91"/>
+<pinref part="C4" gate="G$1" pin="2"/>
 </segment>
 </net>
 </nets>

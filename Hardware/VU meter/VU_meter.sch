@@ -11044,7 +11044,7 @@ Source: http://www.bourns.com/data/global/PDFs/3223.PDF</description>
 <instance part="IC2" gate="A" x="53.34" y="185.42" rot="MR180"/>
 <instance part="IC2" gate="B" x="50.8" y="129.54" rot="MR180"/>
 <instance part="GND4" gate="1" x="0" y="109.22"/>
-<instance part="C3" gate="G$1" x="15.24" y="127" rot="R90"/>
+<instance part="C3" gate="G$1" x="15.24" y="127" rot="R270"/>
 <instance part="R2" gate="G$1" x="25.4" y="119.38" rot="R90"/>
 <instance part="R5" gate="G$1" x="25.4" y="137.16" rot="R90"/>
 <instance part="P+3" gate="VCC" x="25.4" y="147.32"/>
@@ -11052,7 +11052,7 @@ Source: http://www.bourns.com/data/global/PDFs/3223.PDF</description>
 <instance part="C5" gate="G$1" x="38.1" y="116.84" rot="R180"/>
 <instance part="R6" gate="G$1" x="38.1" y="109.22" rot="R90"/>
 <instance part="R7" gate="G$1" x="60.96" y="139.7" rot="R180"/>
-<instance part="C7" gate="G$1" x="15.24" y="182.88" rot="R90"/>
+<instance part="C7" gate="G$1" x="15.24" y="182.88" rot="R270"/>
 <instance part="R3" gate="G$1" x="25.4" y="175.26" rot="R90"/>
 <instance part="R4" gate="G$1" x="25.4" y="193.04" rot="R90"/>
 <instance part="P+2" gate="VCC" x="25.4" y="203.2"/>
@@ -11235,24 +11235,17 @@ Source: http://www.bourns.com/data/global/PDFs/3223.PDF</description>
 <wire x1="-30.48" y1="60.96" x2="-25.4" y2="60.96" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="RIGHT" class="0">
-<segment>
-<wire x1="-10.16" y1="127" x2="12.7" y2="127" width="0.1524" layer="91"/>
-<label x="-10.16" y="127" size="1.778" layer="95" rot="R180" xref="yes"/>
-<pinref part="C3" gate="G$1" pin="+"/>
-</segment>
-</net>
 <net name="N$5" class="0">
 <segment>
-<pinref part="C3" gate="G$1" pin="-"/>
 <pinref part="R5" gate="G$1" pin="1"/>
-<wire x1="20.32" y1="127" x2="25.4" y2="127" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="127" x2="25.4" y2="132.08" width="0.1524" layer="91"/>
 <pinref part="R2" gate="G$1" pin="2"/>
 <wire x1="25.4" y1="124.46" x2="25.4" y2="127" width="0.1524" layer="91"/>
 <junction x="25.4" y="127"/>
 <pinref part="IC2" gate="B" pin="+IN"/>
 <wire x1="25.4" y1="127" x2="43.18" y2="127" width="0.1524" layer="91"/>
+<pinref part="C3" gate="G$1" pin="+"/>
+<wire x1="25.4" y1="127" x2="17.78" y2="127" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$6" class="0">
@@ -11278,24 +11271,17 @@ Source: http://www.bourns.com/data/global/PDFs/3223.PDF</description>
 <pinref part="C10" gate="G$1" pin="1"/>
 </segment>
 </net>
-<net name="LEFT" class="0">
-<segment>
-<wire x1="-10.16" y1="182.88" x2="12.7" y2="182.88" width="0.1524" layer="91"/>
-<pinref part="C7" gate="G$1" pin="+"/>
-<label x="-10.16" y="182.88" size="1.778" layer="95" rot="R180" xref="yes"/>
-</segment>
-</net>
 <net name="N$4" class="0">
 <segment>
-<pinref part="C7" gate="G$1" pin="-"/>
 <pinref part="R4" gate="G$1" pin="1"/>
-<wire x1="20.32" y1="182.88" x2="25.4" y2="182.88" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="182.88" x2="25.4" y2="187.96" width="0.1524" layer="91"/>
 <pinref part="R3" gate="G$1" pin="2"/>
 <wire x1="25.4" y1="180.34" x2="25.4" y2="182.88" width="0.1524" layer="91"/>
 <junction x="25.4" y="182.88"/>
 <wire x1="25.4" y1="182.88" x2="45.72" y2="182.88" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="A" pin="+IN"/>
+<pinref part="C7" gate="G$1" pin="+"/>
+<wire x1="25.4" y1="182.88" x2="17.78" y2="182.88" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
@@ -11412,6 +11398,20 @@ Source: http://www.bourns.com/data/global/PDFs/3223.PDF</description>
 <pinref part="IC1" gate="1" pin="ANALOG_5"/>
 <pinref part="R12" gate="1" pin="S"/>
 <wire x1="43.18" y1="71.12" x2="63.5" y2="71.12" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="LEFT" class="0">
+<segment>
+<pinref part="C7" gate="G$1" pin="-"/>
+<wire x1="10.16" y1="182.88" x2="-10.16" y2="182.88" width="0.1524" layer="91"/>
+<label x="-10.16" y="182.88" size="1.778" layer="95" rot="R180" xref="yes"/>
+</segment>
+</net>
+<net name="RIGHT" class="0">
+<segment>
+<pinref part="C3" gate="G$1" pin="-"/>
+<wire x1="10.16" y1="127" x2="-10.16" y2="127" width="0.1524" layer="91"/>
+<label x="-10.16" y="127" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 </nets>

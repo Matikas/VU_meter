@@ -8921,6 +8921,8 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <part name="R9" library="eagle-ltspice" deviceset="R" device="0207/10" value="10k"/>
 <part name="C4" library="capacitor-wima" deviceset="C" device="5/5" value="47p"/>
 <part name="C10" library="capacitor-wima" deviceset="C" device="5/5" value="47p"/>
+<part name="C6" library="capacitor-wima" deviceset="C" device="5/5" value="100p"/>
+<part name="C9" library="capacitor-wima" deviceset="C" device="5/5" value="100p"/>
 </parts>
 <sheets>
 <sheet>
@@ -8959,6 +8961,8 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <instance part="R9" gate="G$1" x="60.96" y="195.58" rot="R180"/>
 <instance part="C4" gate="G$1" x="60.96" y="205.74" rot="R90"/>
 <instance part="C10" gate="G$1" x="60.96" y="149.86" rot="R90"/>
+<instance part="C6" gate="G$1" x="78.74" y="129.54" rot="R90"/>
+<instance part="C9" gate="G$1" x="86.36" y="185.42" rot="R90"/>
 </instances>
 <busses>
 </busses>
@@ -9120,25 +9124,6 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <pinref part="C10" gate="G$1" pin="1"/>
 </segment>
 </net>
-<net name="N$9" class="0">
-<segment>
-<wire x1="66.04" y1="149.86" x2="68.58" y2="149.86" width="0.1524" layer="91"/>
-<wire x1="68.58" y1="149.86" x2="68.58" y2="144.78" width="0.1524" layer="91"/>
-<pinref part="R7" gate="G$1" pin="1"/>
-<wire x1="68.58" y1="144.78" x2="68.58" y2="139.7" width="0.1524" layer="91"/>
-<wire x1="68.58" y1="139.7" x2="66.04" y2="139.7" width="0.1524" layer="91"/>
-<junction x="68.58" y="144.78"/>
-<pinref part="IC2" gate="B" pin="OUT"/>
-<wire x1="58.42" y1="129.54" x2="73.66" y2="129.54" width="0.1524" layer="91"/>
-<wire x1="73.66" y1="129.54" x2="73.66" y2="144.78" width="0.1524" layer="91"/>
-<wire x1="73.66" y1="144.78" x2="68.58" y2="144.78" width="0.1524" layer="91"/>
-<junction x="73.66" y="129.54"/>
-<pinref part="IC1" gate="1" pin="ANALOG_0"/>
-<wire x1="43.18" y1="83.82" x2="73.66" y2="83.82" width="0.1524" layer="91"/>
-<wire x1="73.66" y1="83.82" x2="73.66" y2="129.54" width="0.1524" layer="91"/>
-<pinref part="C10" gate="G$1" pin="2"/>
-</segment>
-</net>
 <net name="LEFT" class="0">
 <segment>
 <wire x1="-10.16" y1="182.88" x2="12.7" y2="182.88" width="0.1524" layer="91"/>
@@ -9184,22 +9169,56 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 </net>
 <net name="N$12" class="0">
 <segment>
+<pinref part="IC1" gate="1" pin="ANALOG_1"/>
+<wire x1="43.18" y1="81.28" x2="106.68" y2="81.28" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="81.28" x2="106.68" y2="185.42" width="0.1524" layer="91"/>
+<pinref part="C9" gate="G$1" pin="2"/>
+<wire x1="91.44" y1="185.42" x2="106.68" y2="185.42" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$7" class="0">
+<segment>
+<pinref part="IC1" gate="1" pin="ANALOG_0"/>
+<wire x1="43.18" y1="83.82" x2="88.9" y2="83.82" width="0.1524" layer="91"/>
+<wire x1="88.9" y1="83.82" x2="88.9" y2="129.54" width="0.1524" layer="91"/>
+<pinref part="C6" gate="G$1" pin="2"/>
+<wire x1="83.82" y1="129.54" x2="88.9" y2="129.54" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$9" class="0">
+<segment>
+<pinref part="R9" gate="G$1" pin="1"/>
+<wire x1="68.58" y1="195.58" x2="66.04" y2="195.58" width="0.1524" layer="91"/>
+<pinref part="C4" gate="G$1" pin="2"/>
 <wire x1="66.04" y1="205.74" x2="68.58" y2="205.74" width="0.1524" layer="91"/>
 <wire x1="68.58" y1="205.74" x2="68.58" y2="200.66" width="0.1524" layer="91"/>
-<pinref part="R9" gate="G$1" pin="1"/>
 <wire x1="68.58" y1="200.66" x2="68.58" y2="195.58" width="0.1524" layer="91"/>
-<wire x1="68.58" y1="195.58" x2="66.04" y2="195.58" width="0.1524" layer="91"/>
 <junction x="68.58" y="200.66"/>
-<wire x1="60.96" y1="185.42" x2="73.66" y2="185.42" width="0.1524" layer="91"/>
-<wire x1="73.66" y1="185.42" x2="73.66" y2="200.66" width="0.1524" layer="91"/>
 <wire x1="73.66" y1="200.66" x2="68.58" y2="200.66" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="A" pin="OUT"/>
+<wire x1="60.96" y1="185.42" x2="73.66" y2="185.42" width="0.1524" layer="91"/>
+<wire x1="73.66" y1="185.42" x2="73.66" y2="200.66" width="0.1524" layer="91"/>
 <junction x="73.66" y="185.42"/>
-<pinref part="IC1" gate="1" pin="ANALOG_1"/>
-<wire x1="43.18" y1="81.28" x2="81.28" y2="81.28" width="0.1524" layer="91"/>
-<wire x1="81.28" y1="81.28" x2="81.28" y2="185.42" width="0.1524" layer="91"/>
-<wire x1="81.28" y1="185.42" x2="73.66" y2="185.42" width="0.1524" layer="91"/>
-<pinref part="C4" gate="G$1" pin="2"/>
+<pinref part="C9" gate="G$1" pin="1"/>
+<wire x1="83.82" y1="185.42" x2="73.66" y2="185.42" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$13" class="0">
+<segment>
+<pinref part="R7" gate="G$1" pin="1"/>
+<wire x1="68.58" y1="139.7" x2="66.04" y2="139.7" width="0.1524" layer="91"/>
+<pinref part="C10" gate="G$1" pin="2"/>
+<wire x1="66.04" y1="149.86" x2="68.58" y2="149.86" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="149.86" x2="68.58" y2="144.78" width="0.1524" layer="91"/>
+<junction x="68.58" y="144.78"/>
+<wire x1="68.58" y1="144.78" x2="68.58" y2="139.7" width="0.1524" layer="91"/>
+<wire x1="73.66" y1="144.78" x2="68.58" y2="144.78" width="0.1524" layer="91"/>
+<wire x1="73.66" y1="144.78" x2="73.66" y2="129.54" width="0.1524" layer="91"/>
+<pinref part="IC2" gate="B" pin="OUT"/>
+<wire x1="58.42" y1="129.54" x2="73.66" y2="129.54" width="0.1524" layer="91"/>
+<junction x="73.66" y="129.54"/>
+<pinref part="C6" gate="G$1" pin="1"/>
+<wire x1="76.2" y1="129.54" x2="73.66" y2="129.54" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
