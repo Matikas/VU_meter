@@ -337,8 +337,7 @@ void toggleChangeParams(){
   changeParams = !changeParams;
 }
  
-float fscale( float originalMin, float originalMax, float newBegin, float
-newEnd, float inputValue, float curve){
+float fscale( float originalMin, float originalMax, float newBegin, float newEnd, float inputValue, float curve){
  
   float OriginalRange = 0;
   float NewRange = 0;
